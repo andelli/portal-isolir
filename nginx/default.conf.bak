@@ -1,0 +1,48 @@
+server {
+    listen 80;
+    server_name portal.local msftconnecttest.com www.msftconnecttest.com;
+    server_name connectivitycheck.gstatic.com clients3.google.com;
+    server_name captive.apple.com www.apple.com;
+    server_name detectportal.firefox.com;
+    server_name *.local.lan;
+
+    root /var/www/html;
+    index index.html;
+
+    access_log /var/log/nginx/portal_access.log;
+    error_log /var/log/nginx/portal_error.log;
+
+    # ======================================
+    # Captive portal redirects
+    # ======================================
+
+    # Windows Captive Portal
+    location = /connecttest.txt { return 302 /; }
+    location = /redirect { return 302 /; }
+    location = /ncsi.txt { return 302 /; }
+
+    # Android Captive Portal
+    location = /generate_204 { return 302 /; }
+    location = /gen_204 { return 302 /; }
+
+    # Apple Captive Portal
+    location = /hotspot-detect.html { return 302 /; }
+    location = /library/test/success.html { return 302 /; }
+
+    # Firefox Captive Portal
+    location = /success.txt { return 302 /; }
+
+    # Default handling
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0";
+    }
+
+    error_page 404 /index.html;
+
+    # Allow .htaccess equivalent
+    location ~ /\.ht {
+        deny all;
+    }
+}
+

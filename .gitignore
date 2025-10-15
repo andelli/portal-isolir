@@ -1,0 +1,16 @@
+# Jangan upload environment
+.env
+
+# Jangan upload SSL certificate/key
+ssl/*.crt
+ssl/*.key
+
+# Log files
+*.log
+
+# Temporary / cache
+*.swp
+*.bak
+*.tmp
+
+

@@ -1,0 +1,31 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: portal_nginx
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - ./nginx/html:/var/www/html:ro
+      - ./ssl:/etc/nginx/ssl
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    restart: unless-stopped
+
+  bind9:
+    build: ./bind
+    image: portal_bind9_custom
+    container_name: portal_bind9
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    environment:
+      - PORTAL_IP=${PORTAL_IP}
+      - WEB_IP=${WEB_IP}
+    volumes:
+      - ./bind/named.conf:/etc/bind/named.conf:ro
+      - ./bind/named.conf.options:/etc/bind/named.conf.options:ro
+      - ./bind/named.conf.local:/etc/bind/named.conf.local:ro
+      - ./bind/zones:/etc/bind/zones:rw
+    entrypoint: ["/entrypoint.sh"]
+    command: ["-g", "-u", "bind"]
+    restart: unless-stopped
