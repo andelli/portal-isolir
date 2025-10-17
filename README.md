@@ -98,17 +98,49 @@ Tujuan dari portal ini adalah **mengalihkan trafik pengguna yang terisolasi ke h
 
 ---
 
-## 🔥 Konfigurasi Firewall (MikroTik)
+# 📌 Konfigurasi Firewall MikroTik - Portal Isolir
 
-### Firewall Dasar
-/ip firewall nat
-add action=masquerade chain=srcnat comment=ISOLIR_ALLOW_HTTPS dst-address=<IP_WEB_HTTPS> dst-port=443 out-interface-list=gateway protocol=tcp src-address-list=<USER_PORTAL>
-add action=dst-nat chain=dstnat comment=ISOLIR_REDIRECT_WEB dst-port=80 protocol=tcp src-address-list=<USER_PORTAL> to-addresses=<IP_NGINX_SERVER>
-add action=dst-nat chain=dstnat comment=ISOLIR_REDIRECT_HTTPS dst-port=443 protocol=tcp src-address-list=<USER_PORTAL> to-addresses=<IP_NGINX_SERVER>
-add action=masquerade chain=srcnat comment=ISOLIR_ALLOW-DNS dst-port=53 protocol=udp src-address-list=<USER_PORTAL>
-add action=masquerade chain=srcnat comment=ISOLIR_ALLOW-DNS dst-port=53 protocol=tcp src-address-list=<USER_PORTAL>
+Konfigurasi ini digunakan untuk memaksa semua trafik **HTTP/HTTPS/DNS** user yang masuk dalam daftar `USER_PORTAL` agar diarahkan ke server **Nginx captive portal**.  
+Dengan aturan ini, meskipun user mencoba membuka situs lain (termasuk HTTPS/QUIC), mereka akan tetap masuk ke halaman portal isolir.
 
-Dengan aturan ini, **semua request HTTPS/QUIC user akan dipaksa masuk ke portal isolir**, meskipun user mencoba membuka situs lain.
+---
+
+## 🔹 Aturan Firewall Dasar
+
+```bash
+# Izinkan user akses ke IP web tertentu via HTTPS
+/ip firewall nat add action=masquerade chain=srcnat \
+    comment="ISOLIR_ALLOW_HTTPS" \
+    dst-address=<IP_WEB_HTTPS> dst-port=443 \
+    out-interface-list=gateway protocol=tcp \
+    src-address-list=<USER_PORTAL>
+
+# Redirect HTTP user portal ke Nginx captive portal
+/ip firewall nat add action=dst-nat chain=dstnat \
+    comment="ISOLIR_REDIRECT_WEB" \
+    dst-port=80 protocol=tcp \
+    src-address-list=<USER_PORTAL> \
+    to-addresses=<IP_NGINX_SERVER>
+
+# Redirect HTTPS user portal ke Nginx captive portal
+/ip firewall nat add action=dst-nat chain=dstnat \
+    comment="ISOLIR_REDIRECT_HTTPS" \
+    dst-port=443 protocol=tcp \
+    src-address-list=<USER_PORTAL> \
+    to-addresses=<IP_NGINX_SERVER>
+
+# Izinkan DNS query (UDP)
+/ip firewall nat add action=masquerade chain=srcnat \
+    comment="ISOLIR_ALLOW-DNS" \
+    dst-port=53 protocol=udp \
+    src-address-list=<USER_PORTAL>
+
+# Izinkan DNS query (TCP)
+/ip firewall nat add action=masquerade chain=srcnat \
+    comment="ISOLIR_ALLOW-DNS" \
+    dst-port=53 protocol=tcp \
+    src-address-list=<USER_PORTAL>
+
 
 ---
 
