@@ -1,31 +1,47 @@
+# docker-compose.yml
 services:
+  php:
+    image: php:8.2-fpm
+    container_name: portal_php
+    volumes:
+      - ./nginx/html:/var/www/html:rw
+    environment:
+      - PHP_MEMORY_LIMIT=256M
+    restart: unless-stopped
+
   nginx:
     image: nginx:latest
     container_name: portal_nginx
     ports:
       - "80:80"
-      - "8080:8080"
+      - "443:443"
+      - "8080:8080"  # opsional, jika memang butuh port 8080
     volumes:
-      - ./nginx/html:/var/www/html:ro
-      - ./ssl:/etc/nginx/ssl
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/html:/var/www/html:rw
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
     restart: unless-stopped
 
-  bind9:
-    build: ./bind
-    image: portal_bind9_custom
-    container_name: portal_bind9
-    ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-    environment:
-      - PORTAL_IP=${PORTAL_IP}
-      - WEB_IP=${WEB_IP}
-    volumes:
-      - ./bind/named.conf:/etc/bind/named.conf:ro
-      - ./bind/named.conf.options:/etc/bind/named.conf.options:ro
-      - ./bind/named.conf.local:/etc/bind/named.conf.local:ro
-      - ./bind/zones:/etc/bind/zones:rw
-    entrypoint: ["/entrypoint.sh"]
-    command: ["-g", "-u", "bind"]
-    restart: unless-stopped
+
+#  bind9:
+#    build: ./bind
+#    image: portal_bind9_custom
+#    container_name: portal_bind9
+#    ports:
+#      - "53:53/udp"
+#      - "53:53/tcp"
+#      - "953:953/tcp"
+#      - "853:853/tcp"
+#    environment:
+#      - PORTAL_IP=${PORTAL_IP}
+#      - WEB_IP=${WEB_IP}
+#    volumes:
+#      - ./bind/named.conf:/etc/bind/named.conf:ro
+#      - ./bind/named.conf.options:/etc/bind/named.conf.options:ro
+#      - ./bind/named.conf.local:/etc/bind/named.conf.local:ro
+#      - ./bind/zones:/etc/bind/zones:rw
+#    entrypoint: ["/entrypoint.sh"]
+#    command: ["-g", "-u", "bind"]
+#    restart: unless-stopped
