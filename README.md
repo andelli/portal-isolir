@@ -140,7 +140,7 @@ Dengan aturan ini, meskipun user mencoba membuka situs lain (termasuk HTTPS/QUIC
     comment="ISOLIR_ALLOW-DNS" \
     dst-port=53 protocol=tcp \
     src-address-list=<USER_PORTAL>
-
+ ```
 
 ---
 
